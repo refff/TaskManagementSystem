@@ -26,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/api/tasks")
-    public ResponseEntity<?> createTask(@Valid @RequestBody Task task) {
+    public ResponseEntity<?> createTask(@Valid @RequestBody TaskDto task) {
         return userService.createTask(task);
     }
 

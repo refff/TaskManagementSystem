@@ -1,8 +1,10 @@
 package taskmanagement.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.annotation.ReadOnlyProperty;
 
 @Entity
 @Table
@@ -18,9 +20,10 @@ public class Task {
     @NotNull
     private String description;
     private String status = "CREATED";
-    private String author;
-
-    String ergvev;
+    @ManyToOne
+    @JoinColumn(name = "author_id")
+    private AppUser author;
+    private String authorName;
 
     public Task(){
     }
@@ -28,7 +31,8 @@ public class Task {
     public Task(String title, String description, AppUser user) {
         this.title = title;
         this.description = description;
-        this.author = user.getEmail();
+        this.author = user;
+        this.authorName = user.getEmail();
     }
 
     public int getId() {
@@ -63,11 +67,20 @@ public class Task {
         this.status = status;
     }
 
-    public String getAuthor() {
+    public AppUser getUser() {
         return author;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    @JsonIgnore
+    public void setUser(AppUser user) {
+        this.author = user;
+    }
+
+    public String getAuthor() {
+        return authorName;
+    }
+
+    public void setAuthor(String authorName) {
+        this.authorName = authorName;
     }
 }

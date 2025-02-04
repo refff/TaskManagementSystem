@@ -11,6 +11,7 @@ import taskmanagement.domain.AppUser;
 import taskmanagement.domain.Task;
 import taskmanagement.infrastructure.TaskRepository;
 import taskmanagement.infrastructure.UserRepository;
+import taskmanagement.presentation.TaskDto;
 
 import java.util.List;
 
@@ -47,15 +48,20 @@ public class UserService {
     @Transactional
     public ResponseEntity<?> getTasks(){
         auth = SecurityContextHolder.getContext().getAuthentication();
-        List<Task> tasksList =  taskRepository.findTaskByAuthor(auth.getName());
+        int authorId = userRepository.findByEmail(auth.getName()).getId();
+        List<Task> tasksList =  taskRepository.findTasksByAuthorId(authorId);
 
         return new ResponseEntity<>(tasksList, HttpStatus.OK);
     }
 
     @Transactional
-    public ResponseEntity<?> createTask(Task task){
+    public ResponseEntity<?> createTask(TaskDto taskDto){
         auth = SecurityContextHolder.getContext().getAuthentication();
-        task.setAuthor(auth.getName());
+        AppUser user = userRepository.findByEmail(auth.getName());
+        Task task = new Task(taskDto.getTitle(), taskDto.getDescription(), user);
+
+        //task.setAuthor(auth.getName());
+        
         taskRepository.save(task);
         return new ResponseEntity<>(task, HttpStatus.OK);
     }

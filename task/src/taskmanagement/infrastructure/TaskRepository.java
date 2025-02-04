@@ -10,5 +10,5 @@ import java.util.Optional;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Integer> {
-    List<Task> findTaskByAuthor(String user);
+    List<Task> findTasksByAuthorId(int authorId);
 }

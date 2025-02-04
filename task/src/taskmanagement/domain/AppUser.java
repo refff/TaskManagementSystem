@@ -21,6 +21,8 @@ public class AppUser {
     @Size(min = 6)
     private String password;
     private String authority;
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Task> tasks;
 
     public AppUser() {
     }
@@ -31,6 +33,14 @@ public class AppUser {
         this.email = email.toLowerCase();
         this.password = password;
         this.authority = "ROLE_USER";
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getAuthority() {

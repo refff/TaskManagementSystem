@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
@@ -19,7 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
-//@EnableWebSecurity
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -28,20 +29,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .httpBasic(withDefaults()) // enable basic HTTP authentication
+                .httpBasic(withDefaults())
                 .formLogin(withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        // other matchers
-                        .requestMatchers("/error").permitAll() // expose the /error endpoint
-                        .requestMatchers("/actuator/shutdown").permitAll() // required for tests
-                        .requestMatchers("/console/**").permitAll() // expose H2 console
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/actuator/shutdown").permitAll()
+                        .requestMatchers("/console/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tasks").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/api/user").permitAll()
                         .requestMatchers("/**").permitAll()
                 )
-                .csrf(AbstractHttpConfigurer::disable) // allow modifying requests from tests
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessions ->
-                        sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // no session
+                        sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .build();
     }

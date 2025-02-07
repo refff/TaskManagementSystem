@@ -20,18 +20,12 @@ public class UserController {
     }
 
     @GetMapping(value = "/api/tasks")
-    public ResponseEntity<?> getTasks(){
-        //System.out.println(email);
-        return userService.getTasks();
+    public ResponseEntity<?> getTasks(@RequestParam(name = "author", required = false) String email){
+        return email == null ? userService.getAllTasks() : userService.getTasksByEmail(email);
     }
 
     @PostMapping(value = "/api/tasks")
-    public ResponseEntity<?> createTask(@Valid @RequestBody TaskDto task) {
+    public ResponseEntity<?> createTask(@Valid @RequestBody Task task) {
         return userService.createTask(task);
     }
-
-    /*@GetMapping(value = "/api/users")
-    public ResponseEntity<?> getUser(@RequestBody AppUser user){
-        return userService.findUser(user.getEmail());
-    }*/
 }

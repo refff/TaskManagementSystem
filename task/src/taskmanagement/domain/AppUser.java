@@ -21,7 +21,7 @@ public class AppUser {
     @Size(min = 6)
     private String password;
     private String authority;
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private List<Task> tasks;
 
     public AppUser() {

@@ -11,11 +11,11 @@ import taskmanagement.domain.AppUser;
 import taskmanagement.domain.Task;
 import taskmanagement.infrastructure.TaskRepository;
 import taskmanagement.infrastructure.UserRepository;
-import taskmanagement.presentation.TaskDto;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -30,7 +30,6 @@ public class UserService {
         this.taskRepository = taskRepository;
     }
 
-    @Transactional
     public ResponseEntity<?> createUser(AppUser request){
         if (userRepository.findUserByEmail(request.getEmail()).isPresent()) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
@@ -45,30 +44,30 @@ public class UserService {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @Transactional
-    public ResponseEntity<?> getTasks(){
-        auth = SecurityContextHolder.getContext().getAuthentication();
-        int authorId = userRepository.findByEmail(auth.getName()).getId();
-        List<Task> tasksList =  taskRepository.findTasksByAuthorId(authorId);
+    public ResponseEntity<?> getAllTasks(){
+        List<Task> tasksList = taskRepository.findAllByOrderByIdDesc();
 
         return new ResponseEntity<>(tasksList, HttpStatus.OK);
     }
 
-    @Transactional
-    public ResponseEntity<?> createTask(TaskDto taskDto){
-        auth = SecurityContextHolder.getContext().getAuthentication();
-        AppUser user = userRepository.findByEmail(auth.getName());
-        Task task = new Task(taskDto.getTitle(), taskDto.getDescription(), user);
+    public ResponseEntity<?> getTasksByEmail(String email) {
+        AppUser author = userRepository.findByEmail(email);
+        if(author == null) return new ResponseEntity<>(List.of(), HttpStatus.OK);
+        int authorId = author.getId();
+        List<Task> tasksList =  taskRepository.findTasksByAuthorId(authorId);
 
-        //task.setAuthor(auth.getName());
-        
-        taskRepository.save(task);
-        return new ResponseEntity<>(task, HttpStatus.OK);
+        return new ResponseEntity<>(tasksList.reversed(), HttpStatus.OK);
     }
 
-    /*public ResponseEntity<?> findUser(String email){
-        AppUser user = userRepository.findByEmail(email);
 
-        return new ResponseEntity<>(user, HttpStatus.OK);
-    }*/
+    public ResponseEntity<?> createTask(Task task){
+        auth = SecurityContextHolder.getContext().getAuthentication();
+        AppUser user = userRepository.findByEmail(auth.getName());
+        task.setAuthor(user.getEmail());
+        task.setUser(user);
+
+        taskRepository.save(task);
+
+        return new ResponseEntity<>(task, HttpStatus.OK);
+    }
 }

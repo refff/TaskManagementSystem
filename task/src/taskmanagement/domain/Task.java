@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.data.annotation.ReadOnlyProperty;
 
 @Entity
 @Table
@@ -26,6 +25,7 @@ public class Task {
     @JoinColumn(name = "author_id")
     private AppUser author;
     private String authorName;
+    private String assignee = "none";
 
     public Task(){
     }
@@ -85,4 +85,13 @@ public class Task {
     public void setAuthor(String authorName) {
         this.authorName = authorName;
     }
+
+    public String getAssignee() {
+        return assignee;
+    }
+
+    public void setAssignee(String assignee) {
+        this.assignee = assignee;
+    }
+
 }

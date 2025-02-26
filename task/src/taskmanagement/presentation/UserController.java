@@ -27,8 +27,10 @@ public class UserController {
     }
 
     @GetMapping(value = "/api/tasks")
-    public ResponseEntity<?> getTasks(@RequestParam(name = "author", required = false) String email){
-        return email == null ? userService.getAllTasks() : userService.getTasksByEmail(email);
+    public ResponseEntity<?> getTasks(@RequestParam(name = "author", required = false) String email,
+                                      @RequestParam(name = "assignee", required = false) String assignee){
+        return userService.getTasksByParameters(email, assignee);
+        //return email == null ? userService.getAllTasks() : userService.getTasksByEmail(email);
     }
 
     @PostMapping(value = "/api/tasks")
@@ -40,5 +42,17 @@ public class UserController {
     public ResponseEntity<?> token(HttpServletRequest request) {
         String token = authService.authAndCreateToken(request);
         return new ResponseEntity<>(Map.of("token", token), HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/api/tasks/{taskId}/assign")
+    public ResponseEntity<?> assignTask(@PathVariable("taskId") int taskId,
+                                        @RequestBody Map<String, String> body) {
+        return userService.assignTask(body.get("assignee"), taskId);
+    }
+
+    @PutMapping(value = "/api/tasks/{taskId}/status")
+    public ResponseEntity<?> setStatus(@PathVariable("taskId") int taskId,
+                                       @RequestBody Map<String, String> body) {
+        return userService.setStatus(body.get("status"), taskId);
     }
 }

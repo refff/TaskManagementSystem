@@ -8,8 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import taskmanagement.domain.AppUser;
 import taskmanagement.domain.Task;
-import taskmanagement.serviceLayer.AuthService;
-import taskmanagement.serviceLayer.UserService;
+import taskmanagement.serviceLayer.*;
 
 import java.util.Map;
 
@@ -18,6 +17,10 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private ReadTaskService readTaskService;
+    @Autowired
+    private UpdateTaskService updateTaskService;
     @Autowired
     private AuthService authService;
 
@@ -29,12 +32,12 @@ public class UserController {
     @GetMapping(value = "/api/tasks")
     public ResponseEntity<?> getTasks(@RequestParam(name = "author", required = false) String email,
                                       @RequestParam(name = "assignee", required = false) String assignee){
-        return userService.getTasksByParameters(email, assignee);
+        return readTaskService.getTasksByParameters(email, assignee);
     }
 
     @PostMapping(value = "/api/tasks")
     public ResponseEntity<?> createTask(@Valid @RequestBody Task task) {
-        return userService.createTask(task);
+        return updateTaskService.createTask(task);
     }
 
     @PostMapping(value = "/api/auth/token")
@@ -46,12 +49,12 @@ public class UserController {
     @PutMapping(value = "/api/tasks/{taskId}/assign")
     public ResponseEntity<?> assignTask(@PathVariable("taskId") int taskId,
                                         @RequestBody Map<String, String> body) {
-        return userService.assignTask(body.get("assignee"), taskId);
+        return updateTaskService.assignTask(body.get("assignee"), taskId);
     }
 
     @PutMapping(value = "/api/tasks/{taskId}/status")
     public ResponseEntity<?> setStatus(@PathVariable("taskId") int taskId,
                                        @RequestBody Map<String, String> body) {
-        return userService.setStatus(body.get("status"), taskId);
+        return updateTaskService.setStatus(body.get("status"), taskId);
     }
 }

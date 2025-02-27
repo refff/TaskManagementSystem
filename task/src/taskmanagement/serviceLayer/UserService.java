@@ -13,7 +13,6 @@ import taskmanagement.domain.Task;
 import taskmanagement.infrastructure.TaskRepository;
 import taskmanagement.infrastructure.UserRepository;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,17 +46,17 @@ public class UserService {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    public ResponseEntity<?> getAllTasks(){
+    private ResponseEntity<?> getAllTasks(){
         List<Task> tasksList = taskRepository.findAllByOrderByIdDesc();
         return new ResponseEntity<>(tasksList, HttpStatus.OK);
     }
 
-    public ResponseEntity<?> getTasksByEmail(String email) {
+    private ResponseEntity<?> getTasksByEmail(String email) {
         List<Task> taskList = taskRepository.findAllByAuthorName(email);
         return new ResponseEntity<>(taskList.reversed(), HttpStatus.OK);
     }
 
-    public ResponseEntity<?> getTasksByAssignee(String assignee) {
+    private ResponseEntity<?> getTasksByAssignee(String assignee) {
         List<Task> taskList = taskRepository.findAllByAssignee(assignee);
         return new ResponseEntity<>(taskList.reversed(), HttpStatus.OK);
     }
@@ -90,50 +89,68 @@ public class UserService {
     }
 
     public ResponseEntity<?> assignTask(String assignee, int taskId) {
-        Optional<Task> optionalTask = Optional.ofNullable(taskRepository.findById(taskId));
-
-        if (optionalTask.isEmpty())
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-        Task task = optionalTask.get();
-
-        if (!isCreator(task))
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        if (!isCorrectEmail(assignee))
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        if (!isRegisteredEmail(assignee))
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-        task.setAssignee(assignee);
-        taskRepository.save(task);
-
-        return new ResponseEntity<>(task, HttpStatus.OK);
+        return taskRepository.findById(taskId)
+                .map(task -> validateCreator(task)
+                        .or(() -> validateEmail(assignee))
+                        .orElseGet(() -> updateAssignee(task, assignee)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     public ResponseEntity<?> setStatus(String status, int taskId) {
-        //Перенести следующие проверки в отдельный метод
-        Optional<Task> optionalTask = Optional.ofNullable(taskRepository.findById(taskId));
-        if (optionalTask.isEmpty())
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-        Task task = optionalTask.get();
-
-        if (isNotCreator(task) && !isAssignee(task.getAssignee()))
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-
-        Status[] statusList = Status.values();
-        if (Arrays.asList(statusList).contains(status)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-
-        task.setStatus(status);
-        taskRepository.save(task);
-
-        return new ResponseEntity<>(task, HttpStatus.OK);
+        return taskRepository.findById(taskId)
+                .map(task -> checkPermissions(task)
+                        .or(() -> validateStatus(status))
+                        .orElseGet(() -> updateStatus(task, status)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    private boolean isNotCreator(Task task) {
+    private Optional<ResponseEntity<?>> checkPermissions(Task task) {
+        if (!isCreator(task) && !isAssignee(task.getAssignee())) {
+            return Optional.of(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<ResponseEntity<?>> validateCreator(Task task){
+        if (!isCreator(task)) {
+            return Optional.of(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<ResponseEntity<?>> validateStatus(String status) {
+        try {
+            Status.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Optional.of(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<ResponseEntity<?>> validateEmail(String assignee) {
+        if (!isCorrectEmail(assignee)) {
+            return Optional.of(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+        }
+        if (!isRegisteredEmail(assignee)) {
+            return Optional.of(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        }
+        return Optional.empty();
+    }
+
+    private ResponseEntity<?> updateStatus(Task task, String status) {
+        task.setStatus(status);
+        taskRepository.save(task);
+        return ResponseEntity.ok(task);
+    }
+
+    private ResponseEntity<?> updateAssignee(Task task, String assignee) {
+        task.setAssignee(assignee);
+        taskRepository.save(task);
+
+        return ResponseEntity.ok(task);
+    }
+
+    private boolean isCreator(Task task) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         return task.getAuthor().equals(userEmail);
     }

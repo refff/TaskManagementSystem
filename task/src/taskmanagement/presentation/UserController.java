@@ -30,7 +30,6 @@ public class UserController {
     public ResponseEntity<?> getTasks(@RequestParam(name = "author", required = false) String email,
                                       @RequestParam(name = "assignee", required = false) String assignee){
         return userService.getTasksByParameters(email, assignee);
-        //return email == null ? userService.getAllTasks() : userService.getTasksByEmail(email);
     }
 
     @PostMapping(value = "/api/tasks")

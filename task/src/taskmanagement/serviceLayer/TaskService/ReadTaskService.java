@@ -51,5 +51,6 @@ public class ReadTaskService extends TaskService {
             List<Task> taskList = taskRepository.findAllByAssigneeAndAuthorName(assignee.get(), author.get());
             return new ResponseEntity<>(taskList.reversed(), HttpStatus.OK);
         }
+
     }
 }

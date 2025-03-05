@@ -2,7 +2,6 @@ package taskmanagement.serviceLayer;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,16 +38,14 @@ public class CommentService {
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
-    //переделать под optional
+
     public ResponseEntity<?> getAllComments(int taskId) {
-        Optional<Task> task = taskRepository.findById(taskId);
         List<Comment> list = commentRepository.findAllByTaskId(taskId);
-        if (task.isEmpty()) {
+
+        if (taskRepository.findById(taskId).isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            return new ResponseEntity<>(list.reversed(), HttpStatus.OK);
         }
 
-
+        return new ResponseEntity<>(list.reversed(), HttpStatus.OK);
     }
 }

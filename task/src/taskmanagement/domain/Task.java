@@ -24,7 +24,7 @@ public class Task {
     @NotNull
     private String description;
     private String status = "CREATED";
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private AppUser author;
     private String authorName;

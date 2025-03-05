@@ -1,29 +1,42 @@
-package taskmanagement.serviceLayer;
+package taskmanagement.serviceLayer.TaskService;
 
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import taskmanagement.domain.AppUser;
 import taskmanagement.domain.Status;
 import taskmanagement.domain.Task;
+import taskmanagement.domain.TaskDTO;
 import taskmanagement.infrastructure.TaskRepository;
 import taskmanagement.infrastructure.UserRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Transactional
-public class UpdateTaskService extends TaskService {
+public class UpdateTaskService {
+    protected final UserRepository userRepository;
+    protected final PasswordEncoder passwordEncoder;
+    protected final TaskRepository taskRepository;
+    protected Authentication auth;
 
-    public UpdateTaskService(UserRepository userRepository,
+    public UpdateTaskService(UserRepository userRepository, PasswordEncoder passwordEncoder, TaskRepository taskRepository) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.taskRepository = taskRepository;
+    }
+
+    /*public UpdateTaskService(UserRepository userRepository,
                              PasswordEncoder passwordEncoder,
                              TaskRepository taskRepository) {
         super(userRepository, passwordEncoder, taskRepository);
-    }
+    }*/
 
     public ResponseEntity<?> createTask(Task task){
         auth = SecurityContextHolder.getContext().getAuthentication();
@@ -32,8 +45,14 @@ public class UpdateTaskService extends TaskService {
         task.setUser(user);
 
         taskRepository.save(task);
-
-        return new ResponseEntity<>(task, HttpStatus.OK);
+        //create dto
+        return new ResponseEntity<>(Map.of(
+                "id", String.valueOf(task.getId()),
+                "title", task.getTitle(),
+                "description", task.getDescription(),
+                "status", "CREATED",
+                "author", task.getAuthor(),
+                "assignee", task.getAssignee()), HttpStatus.OK);
     }
 
     public ResponseEntity<?> assignTask(String assignee, int taskId) {
@@ -88,14 +107,26 @@ public class UpdateTaskService extends TaskService {
     private ResponseEntity<?> updateStatus(Task task, String status) {
         task.setStatus(status);
         taskRepository.save(task);
-        return ResponseEntity.ok(task);
+
+        return ResponseEntity.ok(convertToDTO(task));
     }
 
     private ResponseEntity<?> updateAssignee(Task task, String assignee) {
         task.setAssignee(assignee);
         taskRepository.save(task);
 
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(convertToDTO(task));
+    }
+
+    private TaskDTO convertToDTO(Task task) {
+        TaskDTO taskDTO = new TaskDTO();
+        taskDTO.setId(task.getId());
+        taskDTO.setDescription(task.getDescription());
+        taskDTO.setStatus(task.getStatus());
+        taskDTO.setAssignee(task.getAssignee());
+        taskDTO.setAuthor(task.getAuthor());
+        taskDTO.setTitle(task.getTitle());
+        return taskDTO;
     }
 
     private boolean isCreator(Task task) {

@@ -1,4 +1,4 @@
-package taskmanagement.serviceLayer;
+package taskmanagement.serviceLayer.TaskService;
 
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
@@ -8,7 +8,6 @@ import taskmanagement.infrastructure.TaskRepository;
 import taskmanagement.infrastructure.UserRepository;
 
 @Service
-@Transactional
 public class TaskService {
     protected final UserRepository userRepository;
     protected final PasswordEncoder passwordEncoder;

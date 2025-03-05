@@ -1,4 +1,4 @@
-package taskmanagement.serviceLayer;
+package taskmanagement.serviceLayer.TaskService;
 
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;

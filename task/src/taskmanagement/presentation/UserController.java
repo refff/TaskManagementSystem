@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import taskmanagement.domain.AppUser;
 import taskmanagement.domain.Task;
 import taskmanagement.serviceLayer.*;
+import taskmanagement.serviceLayer.TaskService.ReadTaskService;
+import taskmanagement.serviceLayer.TaskService.UpdateTaskService;
 
 import java.util.Map;
 
@@ -23,6 +25,8 @@ public class UserController {
     private UpdateTaskService updateTaskService;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private CommentService commentService;
 
     @PostMapping(value = "/api/accounts")
     public ResponseEntity<?> registration(@Valid @RequestBody AppUser user){
@@ -56,5 +60,19 @@ public class UserController {
     public ResponseEntity<?> setStatus(@PathVariable("taskId") int taskId,
                                        @RequestBody Map<String, String> body) {
         return updateTaskService.setStatus(body.get("status"), taskId);
+    }
+
+    @PostMapping(value = "/api/tasks/{taskId}/comments")
+    public ResponseEntity<?> postComment(@PathVariable("taskId") int taskId,
+                                         @RequestBody CommentDTO commentDTO) {
+        return commentService.postComment(commentDTO.text, taskId);
+    }
+
+    @GetMapping(value = "/api/tasks/{taskId}/comments")
+    public ResponseEntity<?> getComments(@PathVariable("taskId") int taskId) {
+        return commentService.getAllComments(taskId);
+    }
+
+    record CommentDTO(String text) {
     }
 }

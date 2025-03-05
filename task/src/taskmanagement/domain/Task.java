@@ -2,9 +2,12 @@ package taskmanagement.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
 
 @Entity
 @Table
@@ -26,6 +29,8 @@ public class Task {
     private AppUser author;
     private String authorName;
     private String assignee = "none";
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    private List<Comment> comments;
 
     public Task(){
     }
@@ -94,4 +99,16 @@ public class Task {
         this.assignee = assignee;
     }
 
+    public void setAuthor(AppUser author) {
+        this.author = author;
+    }
+
+    @JsonProperty(value = "total_comments", required = false)
+    public int getTotalComments() {
+        return comments.size();
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
+    }
 }
